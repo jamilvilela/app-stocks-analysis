@@ -1,4 +1,3 @@
-import pytz
 import uuid
 from config.Common import Common
 from mongodb.MongoDB import MongoDB
@@ -43,5 +42,5 @@ class AppModel:
         result = self._db.mongo_find(Filter={'user_email': user_email}, 
                                      Collection=self.db_config['DB_TABLE_WALLET'], 
                                      Limit=1)
-        return result
+        return dict(result)
 

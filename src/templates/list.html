@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Search on Twitter</title>
+  <title>Your stocks wallet</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" >
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
   <style>
@@ -12,28 +12,31 @@
 </head>
 <body>
   <div class="container">
-    <h1>Your Twitter query</h1>
+    <h1>Stocks monitoring</h1>
     <br><br>
-    <h6>results will be sent to:</h6>
-    <h4>{{ filter_email }}</h4>
+    <h6>your e-mail</h6>
+    <h4>{{ wallet_list.user_email }}</h4>
+    <br>
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#insertModal">
+      Insert stock
+    </button>
     <div class="list-group">
-      {% if search_list %}
+      {% if wallet_list.stocks %}
         <div class="list-group-item">
           <div class="row fw-bold">
             <!--div class="col-4">Query</div-->
-            <div class="col-2">Lang</div>
+            <div class="col-2">Ticker</div>
             <div class="col-4">Create Date</div>
             <div class="col-2">Del</div>
           </div>
         </div>
-        {% for search in search_list %}
+        {% for stock in wallet_list.stocks %}
         <div class="list-group-item">
           <div class="row">
-            <div class="col-4">{{ search['user_query'] }}</div>
-            <div class="col-2">{{ search['user_language'] }}</div>
-            <div class="col-4">{{ search['created_date'].strftime("%Y-%m-%d %H:%M:%S") }}</div>
+            <div class="col-4">{{ stock['ticker'] }}</div>
+            <div class="col-4">{{ stock['insert_date'].strftime("%Y-%m-%d %H:%M:%S") }}</div>
             <div class="col-2">
-              <form method="POST" action="/delete/{{ search['_id'] }}" class="d-inline">
+              <form method="POST" action="/delete/{{ stock['ticker'] }}" class="d-inline">
                 <button type="submit" class="btn btn-link">
                   <i class="bi bi-trash" style="color: rgb(236, 31, 31);"></i></button>
               </form>
@@ -43,18 +46,43 @@
         {% endfor %}
       {% else %}
         <br>
-        <div class="list-group-item">There is no query to show.</div>
+        <div class="list-group-item">There is no stock to show.</div>
       {% endif %}
     </div>
     <br>
-    <p>Number of items: {{ search_list|length }}</p>
-    <form method="POST" action="/insert-mongodb" >
+    <p>Number of items: {{ wallet_list.stocks|length }}</p>
+    <form method="POST" action="/save" >
       <a href="/" class="btn btn-light"> Add more </a>
       <button type="submit" class="btn btn-success" >
-        <i class="bi bi-check-circle-fill"></i> Finish </button>
+        <i class="bi bi-check-circle-fill"></i> Save </button>
     </form>
   </div>
 
+  <!-- Insert Modal -->
+  <div class="modal fade" id="insertModal" tabindex="-1" aria-labelledby="insertModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="insertModalLabel">Insert stock ticker</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form method="POST" action="/stock_insert">
+            <div class="mb-3">
+              <label for="stock" class="form-label">Stock ticker:</label>
+              <select class="form-select" id="stock" name="stock" required>
+                <option value="">Select a stock</option>
+                <option value="AAPL">AAPL - Apple Inc.</option>
+                <option value="GOOGL">GOOGL - Alphabet Inc.</option>
+                <option value="MSFT">MSFT - Microsoft Corporation</option>
+              </select>
+            </div>
+            <button type="submit" class="btn btn-primary">Insert</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
   <!-- Include Bootstrap JS -->
   <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
