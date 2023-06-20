@@ -28,14 +28,17 @@ class MongoDB:
         except Exception as ex:
             raise Exception(f'Database connection error: {ex}')
     
-    def mongo_find(self, Filter, Collection, Limit) -> list:
+    def mongo_find(self, Filter, Collection, Limit):
         try:
-            coll      = self._db[Collection]
+            coll = self._db[Collection]
             
             if Filter == None and (Limit == 0 or Limit == None):
                 Limit = 1000
-                
-            listFound = list(coll.find(Filter).limit(Limit))
+            
+            if Limit == 1:
+                listFound = coll.find_one(Filter)
+            else:
+                listFound = coll.find(Filter).limit(Limit)
             
             return listFound
         
@@ -45,7 +48,7 @@ class MongoDB:
     def mongo_insert_items(self, Items, Collection):
         """ Insert a set of documents"""
         try:
-            coll    = self._db[Collection]      
+            coll = self._db[Collection]      
             if type(Items) is dict:   
                 insList = coll.insert_one(Items)
             else:
@@ -70,5 +73,18 @@ class MongoDB:
         except Exception as ex:
             raise Exception(f'Error updating into MongoDB: {ex.args[0]}')
 
+    def mongo_delete_items(self, Filter, Collection):
+        ''' 
+            delete the documents regarding the Filter parameter
+        '''
+        try:
+            
+            coll = self._db[Collection]
+            coll.delete_many(filter=Filter)
+            
+        except Exception as ex:
+            raise Exception(f'Error deleting MongoDB collection: {Collection} when {Filter}. \n{ex.args[0]}')
+        
+        
 
    

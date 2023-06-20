@@ -1,69 +1,83 @@
 from flask import Flask, render_template, request, redirect
 from datetime import datetime
-from dataclasses import dataclass, field
-from config.Common import Common
+from dataclasses import dataclass, asdict
 from models.AppModel import AppModel
 
 
 app = Flask(__name__) #, static_folder="static")
 
 @dataclass
-class Item:
+class Stocks:
     ticker: str
-    insert_date: datetime
+    inserted_date: datetime
 
-@dataclass
-class Wallet:
-    user_email: str
-    stocks: Item = field(default_factory=list)
-         
 appModel = AppModel()
-wallet = Wallet(user_email='', stocks=[])
+
+wallet_struct = {'_id':'', 'user_email':'', 'inserted_date':'', 'updated_date':'', 'stocks':[]}
+wallet = wallet_struct.copy()
+
         
 @app.route('/', methods=['GET', 'POST'])
 def login():
+
+    global wallet
+    
     if request.method == 'POST':
-        wallet.user_email = request.form.get('user_email')
+        wallet['user_email'] = request.form.get('user_email')
         
-        return redirect('/list?user_email=' + wallet.user_email)
+        return redirect('/list?user_email=' + wallet['user_email'])
     return render_template('login.html')
+
 
 @app.route('/list')
 def stocks_list():
     
-    global wallet
+    global wallet, wallet_struct
     
-    if len(wallet.stocks) == 0:
+    if not wallet['stocks']:
+        print('wallet stocks is empty')
         
-        wlt = appModel.get_wallet(wallet.user_email)
-        if len(wlt):
-            wlt_new = Wallet(user_email=wlt['user_email'], stocks=list(wlt['stocks']))
-            if wlt['_id']:
-                wallet = wlt_new
-    
+    wallet_db = appModel.get_wallet(wallet['user_email']) if not wallet['stocks'] else {}
+    wallet_db = wallet_struct.copy() if not wallet_db else wallet_db 
+    wallet = wallet if (not wallet_db['stocks'] or wallet['stocks']) else wallet_db
+   
     return render_template('list.html', wallet_list=wallet)
 
-@app.route('/stock_insert/<string:ticker>', methods=['POST'])
-def stock_insert(ticker):
+
+@app.route('/stock_insert', methods=['POST'])
+def stock_insert():
     
-    list(wallet.stocks).append({"ticker": ticker, "insert_date": datetime.utcnow()})
+    global wallet
     
-    return redirect('/list?user_email=' + wallet.user_email)
+    if request.method == 'POST':
+        selected_ticker = request.form.get('stock_ticker')
+        
+        if selected_ticker and (not wallet['stocks'] or 
+                               (not any(item['ticker'] == selected_ticker 
+                                        for item in wallet['stocks']))):
+            stock = asdict(Stocks(ticker = selected_ticker, inserted_date = datetime.utcnow()))
+            wallet['stocks'].append(stock)
+   
+    return redirect('/list?user_email=' + wallet['user_email'])
+
 
 @app.route('/delete/<string:ticker>', methods=['POST'])
 def stock_delete(ticker):
     
-    index = next((index for index, stock in enumerate(wallet.stocks) if stock['ticker'] == ticker), None)
+    global wallet
+    
+    wallet['stocks'] = [stock for stock in wallet['stocks'] if stock['ticker'] != ticker]
    
-    if index is not None:
-        del wallet.stocks[index]
-    return redirect('/list?user_email=' + wallet.user_email)
+    return redirect('/list?user_email=' + wallet['user_email'])
 
 @app.route('/save', methods=['POST'])
 def wallet_save():
-    if wallet:
+    
+    global wallet
+
+    if wallet['user_email'].strip():
         appModel.insert_wallet(wallet)
-        
+        wallet = wallet_struct.copy()
     return redirect('/')
 
 if __name__ == '__main__':
