@@ -1,83 +1,87 @@
 from flask import Flask, render_template, request, redirect
-from datetime import datetime
-from dataclasses import dataclass, asdict
-from models.AppModel import AppModel
+from models.WalletModel import WalletModel
 
 
-app = Flask(__name__) #, static_folder="static")
+app = Flask(__name__)
+walletObj = WalletModel()
 
-@dataclass
-class Stocks:
-    ticker: str
-    inserted_date: datetime
-
-appModel = AppModel()
-
-wallet_struct = {'_id':'', 'user_email':'', 'inserted_date':'', 'updated_date':'', 'stocks':[]}
-wallet = wallet_struct.copy()
-
-        
 @app.route('/', methods=['GET', 'POST'])
 def login():
-
-    global wallet
+    global walletObj
     
     if request.method == 'POST':
-        wallet['user_email'] = request.form.get('user_email')
+        user_email = request.form.get('user_email')
+        user_pass = request.form.get('user_password')
+        walletObj.setEmail(user_email)
         
-        return redirect('/list?user_email=' + wallet['user_email'])
+        if walletObj.checkLogin(user_email, user_pass):        
+            return redirect('/list?user_email=' + user_email)
+
     return render_template('login.html')
 
 
 @app.route('/list')
-def stocks_list():
+def stocks_list():    
+    global walletObj
     
-    global wallet, wallet_struct
-    
-    if not wallet['stocks']:
-        print('wallet stocks is empty')
-        
-    wallet_db = appModel.get_wallet(wallet['user_email']) if not wallet['stocks'] else {}
-    wallet_db = wallet_struct.copy() if not wallet_db else wallet_db 
-    wallet = wallet if (not wallet_db['stocks'] or wallet['stocks']) else wallet_db
-   
-    return render_template('list.html', wallet_list=wallet)
+    wallet = walletObj.getStocksWallet()
+    ticker_types = walletObj.ticker_type_list if walletObj.ticker_type_list \
+                                              else walletObj.get_tickerType()
+    ticker_list = walletObj.tickers   
+    return render_template('list.html', wallet=wallet, ticker_types=ticker_types, tickers_list=ticker_list)
 
 
 @app.route('/stock_insert', methods=['POST'])
-def stock_insert():
-    
-    global wallet
+def stock_insert():    
+    global walletObj
     
     if request.method == 'POST':
-        selected_ticker = request.form.get('stock_ticker')
-        
-        if selected_ticker and (not wallet['stocks'] or 
-                               (not any(item['ticker'] == selected_ticker 
-                                        for item in wallet['stocks']))):
-            stock = asdict(Stocks(ticker = selected_ticker, inserted_date = datetime.utcnow()))
-            wallet['stocks'].append(stock)
+        ticker_type=request.form.get('ticker_type')
+        stock_ticker=request.form.get('stock_ticker')
+        walletObj.insert(ticker_type,stock_ticker)        
    
-    return redirect('/list?user_email=' + wallet['user_email'])
+    return redirect('/list?user_email=' + walletObj.getEmail())
 
 
 @app.route('/delete/<string:ticker>', methods=['POST'])
-def stock_delete(ticker):
+def stock_delete(ticker):    
+    global walletObj
+    walletObj.delete(ticker)
+    return redirect('/list?user_email=' + walletObj.getEmail())
+
+@app.route('/get_tickers', methods=['GET'])
+def get_tickers():    
+    global walletObj
+    ticker_type_selected = request.args.get('dropdown-item')
     
-    global wallet
+    ticker_types = walletObj.ticker_type_list if walletObj.ticker_type_list \
+                                              else walletObj.get_tickerType()
     
-    wallet['stocks'] = [stock for stock in wallet['stocks'] if stock['ticker'] != ticker]
-   
-    return redirect('/list?user_email=' + wallet['user_email'])
+    if not walletObj.tickers or ticker_type_selected != walletObj.ticker_type_current:
+        ticker_list = walletObj.get_tickers(ticker_type_selected)
+    else:
+        ticker_list = walletObj.tickers
+
+    walletObj.ticker_type_current = ticker_type_selected
+    walletObj.tickers = ticker_list
+    wallet = walletObj.getStocksWallet()   
+    return render_template('list.html', wallet=wallet, ticker_types=ticker_types, tickers_list=ticker_list, ticker_type=ticker_type_selected)
 
 @app.route('/save', methods=['POST'])
-def wallet_save():
-    
-    global wallet
+def wallet_save():    
+    global walletObj
+    walletObj.save()
+    return redirect('/list?user_email=' + walletObj.getEmail())
 
-    if wallet['user_email'].strip():
-        appModel.insert_wallet(wallet)
-        wallet = wallet_struct.copy()
+@app.route('/close_modal', methods=['POST'])
+def close_modal():    
+    global walletObj
+    return redirect('/list?user_email=' + walletObj.getEmail())
+
+@app.route('/logout')
+def logout():
+    global walletObj
+    walletObj = WalletModel()    
     return redirect('/')
 
 if __name__ == '__main__':

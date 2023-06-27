@@ -13,7 +13,7 @@ TICKER_TYPE_ETF = 'ETF'
 TICKER_TYPE_INDEX = 'Index'
 TICKER_TYPE_CURRENCY = 'Currency'
 
-class LoadTickers:
+class TickersModel:
     
     def __init__(self) -> None:
         # Define the scope and credentials

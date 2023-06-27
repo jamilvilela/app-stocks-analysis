@@ -18,7 +18,7 @@ class MongoDB:
         self.user     = self.db_config['DB_USER_NAME']
         self.password = parse.quote_plus( self.db_config['DB_PASSWORD'] )
 
-        self._stringConn = (f'mongodb+srv://{self.user}:{self.password}@{self.cluster}.n3igf.mongodb.net/{self.database}?retryWrites=true&w=majority')
+        self._stringConn = (f'mongodb+srv://{self.user}:{self.password}@{self.cluster}.n3igf.mongodb.net/{self.database}') #?retryWrites=true&w=majority
         #self._stringConn = (f'mongodb://{self.user}:{self.password}@{self.cluster}:{self.port}/')
 
         try:
@@ -28,7 +28,18 @@ class MongoDB:
         except Exception as ex:
             raise Exception(f'Database connection error: {ex}')
     
-    def mongo_find(self, Filter, Collection, Limit):
+    def mongo_aggregate(self, Pipeline, Collection) -> list:
+        
+        try:            
+            coll = self._db[Collection]
+            cursor = coll.aggregate(pipeline=Pipeline)
+            result = [doc for doc in cursor if doc]
+            return result 
+        
+        except Exception as ex:
+            raise Exception(f'Aggregate MongoDB Error: {Collection}')
+    
+    def mongo_find(self, Filter, Collection, Limit=0, Sort=None):
         try:
             coll = self._db[Collection]
             
@@ -36,11 +47,12 @@ class MongoDB:
                 Limit = 1000
             
             if Limit == 1:
-                listFound = coll.find_one(Filter)
+                cursor = coll.find_one(Filter)
+                result = cursor
             else:
-                listFound = coll.find(Filter).limit(Limit)
-            
-            return listFound
+                cursor = coll.find(filter=Filter, limit=Limit).sort(Sort)
+                result = [doc for doc in cursor if doc]
+            return result
         
         except Exception as ex:
             raise Exception(f'Database connection error: {ex}')
@@ -77,8 +89,7 @@ class MongoDB:
         ''' 
             delete the documents regarding the Filter parameter
         '''
-        try:
-            
+        try:            
             coll = self._db[Collection]
             coll.delete_many(filter=Filter)
             
