@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head> 
+  <meta charset="utf-8">
+  <title>Your stocks wallet</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" >
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
+  <style>
+    .list-group-item .row [class^="col"] {
+      display: flex;
+      align-items: center;
+    }
+  
+    .list-group-item .row .col-4 {
+      flex-basis: 30%;
+    }
+  
+    .list-group-item .row .col-2 {
+      flex-basis: 20%;
+    }
+  </style>
+</head>
+<body>
+  <meta name="viewport" content="width=device-width">
+  <div class="container">
+    <h1>Stocks watcher</h1>
+    <br><br>
+    <h6>your e-mail</h6>
+    <h4>{{ wallet.user_email }}</h4>
+    <br>
+    <div class="dropdown show">
+      <form method="GET" action="/get_tickers">
+      <button type="submit" class="btn btn-primary dropdown-toggle" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        Insert...
+      </button>    
+      <ul class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+        {% for type in ticker_types %}
+          <li><button class="dropdown-item" type="submit" name="dropdown-item" value="{{ type['_id'] }}"> 
+            {{ type['_id'] }}
+          </button></li>
+        {% endfor %}        
+      </ul> </form>
+    </div>      
+    <br>
+    <div class="list-group">
+    {% if wallet.stocks %}
+        <div class="list-group-item">
+          <div class="row fw-bold">
+            <div class="col col-4">Type</div>
+            <div class="col col-2">Ticker</div>
+            <div class="col col-4">Create at</div>
+            <div class="col col-2">Del</div>
+          </div>
+        </div>
+      {% for stock in wallet.stocks %}
+        <div class="list-group-item">
+          <div class="row">
+            <div class="col col-4">{{ stock['type'] }}</div>
+            <div class="col col-2">{{ stock['ticker'] }}</div>
+            <div class="col col-4">{{ stock['inserted_date'].strftime("%Y-%m-%d %H:%M:%S") }}</div>
+            <div class="col col-2">
+              <form method="POST" action="/delete/{{ stock['ticker'] }}" class="d-inline">
+                <button type="submit" class="btn btn-link">
+                  <i class="bi bi-trash" style="color: rgb(236, 31, 31);"></i></button>
+              </form>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    {% endif %}
+    </div>
+    <br>
+    <br>
+    <p>Number of items: {{ wallet.stocks|length }}</p>
+    <form method="POST" action="/save" >
+      <a href="/logout" class="btn btn-light"> 
+        <i class="bi bi-box-arrow-left"></i>  Logout </a>
+      <button type="submit" class="btn btn-success" >
+        <i class="bi bi-check-circle-fill"></i>  Save </button>
+    </form>
+  </div>
+
+  <!-- Insert Modal -->
+  <div class="modal fade" id="insertModal" tabindex="-1" aria-labelledby="insertModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="insertModalLabel">Insert stock ticker</h5>
+          <button type="button" id="closeModalButton" class="btn-close btn-close-fill" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form method="POST" action="/stock_insert">
+          <div class="modal-body">
+            <div class="mb-3">
+
+              <label for="ticker_type" class="form-label">Type:</label>
+              <input class="form-control" id="ticker_type_show" name="ticker_type_show" value="{{ ticker_type }}" disabled>
+              <input class="form-control" id="ticker_type" name="ticker_type" value="{{ ticker_type }}" hidden>
+              <br>
+              <label for="stock_ticker" class="form-label">Stock ticker:</label>
+              <input list="ticker_list" class="form-control" id="stock_ticker" name="stock_ticker" required>
+              <datalist id="ticker_list">
+                {% for ticker in tickers_list %}
+                  <option value="{{ ticker['Ticker'] }} :: {{ ticker['Name'] }}"></option>
+                {% endfor %}
+              </datalist>  
+            </div>
+            <div class="modal-footer">
+              <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-circle-fill"></i>  Ok </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script> 
+    document.addEventListener('DOMContentLoaded', function() {
+      var tickerType = "{{ ticker_type }}";
+      if (tickerType) {
+        var stockTickerInput = document.getElementById('stock_ticker');
+        stockTickerInput.focus();
+
+        var modal = new bootstrap.Modal(document.getElementById('insertModal'));
+        modal.show();
+      
+        var closeModalButton = document.getElementById('closeModalButton');
+        closeModalButton.addEventListener('click', function() {
+        closeModal();
+
+    });
+  }
+});
+
+function closeModal() {
+  $.ajax({
+    url: '/close_modal', 
+    type: 'POST'
+  });
+}</script>
+
+  <!-- Include Bootstrap JS -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>
