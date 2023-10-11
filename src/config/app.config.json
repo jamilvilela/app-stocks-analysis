@@ -1,0 +1,19 @@
+  {
+    "Configuration": {
+      "Database": {
+        "DB_PASSWORD": "",
+        "DB_USER_NAME": "",
+        "DB_CLUSTER_NAME": "",
+        "DB_PORT_NUMBER": "",
+        "DB_DATABASE_NAME": "stocks_analysis",
+        "DB_TABLE_WALLET": "wallet",
+        "DB_TABLE_TICKERS": "tickers"
+      },
+      "Period_history": 10,
+      "Period_history_unit": "year",
+      "Stocks_Price_Granularity": "1day",
+      "FILE_NAME_DT_FMT": "%Y%m%d_%H%M%S",
+      "DATA_FIELD_DT_FMT": "%Y-%m-%d %H:%M:%S",
+      "TIMEZONE": "America/Sao_Paulo"
+    }
+  }
