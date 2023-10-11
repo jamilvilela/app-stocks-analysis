@@ -1,5 +1,5 @@
 # app-stocks-portfolio
-App developed in Python and MongoDB for stocks fundamentals analysis.
+App developed in Python and MongoDB for stocks analysis.
 
 
 ![Logo](https://github.com/jamilvilela/app-stocks-portfolio/blob/master/images/app_login.png)
