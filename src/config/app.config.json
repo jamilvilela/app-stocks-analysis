@@ -1,10 +1,10 @@
   {
     "Configuration": {
       "Database": {
-        "DB_PASSWORD": "",
-        "DB_USER_NAME": "",
-        "DB_CLUSTER_NAME": "",
-        "DB_PORT_NUMBER": "",
+        "DB_PASSWORD": "dE@012022",
+        "DB_USER_NAME": "jamilvilela",
+        "DB_CLUSTER_NAME": "Cluster0",
+        "DB_PORT_NUMBER": "27017",
         "DB_DATABASE_NAME": "stocks_analysis",
         "DB_TABLE_WALLET": "wallet",
         "DB_TABLE_TICKERS": "tickers"

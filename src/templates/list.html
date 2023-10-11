@@ -2,7 +2,7 @@
 <html lang="en">
 <head> 
   <meta charset="utf-8">
-  <title>Your stocks wallet</title>
+  <title>Your stocks portfolio</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" >
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
   <style>
@@ -18,15 +18,25 @@
     .list-group-item .row .col-2 {
       flex-basis: 20%;
     }
+
+    .fixed-bottom-bar {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      background-color: #f8f9fa; /* Set your preferred background color */
+      padding: 10px; /* Add padding for better visibility */
+      display: flex;
+      justify-content: space-between;
+    }
   </style>
 </head>
 <body>
   <meta name="viewport" content="width=device-width">
   <div class="container">
-    <h1>Stocks watcher</h1>
+    <h1>Stocks Portfolio</h1>
     <br><br>
-    <h6>your e-mail</h6>
-    <h4>{{ wallet.user_email }}</h4>
+    <h6>e-mail</h6>
+    <h4>  {{ wallet.user_email }}</h4>
     <br>
     <div class="dropdown show">
       <form method="GET" action="/get_tickers">
@@ -72,12 +82,14 @@
     <br>
     <br>
     <p>Number of items: {{ wallet.stocks|length }}</p>
-    <form method="POST" action="/save" >
-      <a href="/logout" class="btn btn-light"> 
-        <i class="bi bi-box-arrow-left"></i>  Logout </a>
-      <button type="submit" class="btn btn-success" >
-        <i class="bi bi-check-circle-fill"></i>  Save </button>
-    </form>
+    <div class="fixed-bottom-bar">
+      <form method="POST" action="/save" >
+        <a href="/logout" class="btn btn-light"> 
+          <i class="bi bi-box-arrow-left"></i>  Logout </a>
+        <button type="submit" class="btn btn-success" >
+          <i class="bi bi-check-circle-fill"></i>  Save </button>
+      </form>
+    </div>
   </div>
 
   <!-- Insert Modal -->
